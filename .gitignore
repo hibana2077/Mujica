@@ -4,3 +4,4 @@ docs/test.ipynb
 docs/temp.md
 docs/temp.pdf
 main/exp1/epoch_gradient_influence.npy
+main/exp1/data/organcmnist_224.npz

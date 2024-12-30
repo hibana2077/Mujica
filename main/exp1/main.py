@@ -6,6 +6,7 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
+from timm.models.tiny_vit import tiny_vit_5m_224
 from torch.utils.data import DataLoader, Dataset, random_split
 from medmnist.dataset import OrganAMNIST, OrganCMNIST
 import os
@@ -42,7 +43,7 @@ for i, (img, label) in enumerate(train_loader):
     break
 
 # define model
-mo
+model = tiny_vit_5m_224(pretrained=False, num_classes=11, in_chans=1)
 model = model.to(device)
 
 # define loss function
@@ -63,10 +64,9 @@ def train(epoch):
         inputs, targets = inputs.to(device), targets.to(device)
         targets = targets.squeeze(1)
         optimizer.zero_grad()
-        outputs_seg, outputs_cls = model(inputs)
+        outputs_cls = model(inputs)
         loss_cls = criterion_cls(outputs_cls, targets)
-        loss_seg = criterion_seg(outputs_seg, inputs)
-        loss = loss_cls + loss_seg
+        loss = loss_cls
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
@@ -88,10 +88,9 @@ def test(epoch):
         for batch_idx, (inputs, targets) in enumerate(test_loader):
             inputs, targets = inputs.to(device), targets.to(device)
             targets = targets.squeeze(1)
-            outputs_seg, outputs_cls = model(inputs)
+            outputs_cls = model(inputs)
             loss_cls = criterion_cls(outputs_cls, targets)
-            loss_seg = criterion_seg(outputs_seg, inputs)
-            loss = loss_cls + loss_seg
+            loss = loss_cls
             test_loss += loss.item()
             _, predicted = outputs_cls.max(1)
             total += targets.size(0)
@@ -107,7 +106,7 @@ def main():
     train_acc_hist = []
     test_loss_hist = []
     test_acc_hist = []
-    for epoch in range(10):
+    for epoch in range(3):
         train_loss, train_acc = train(epoch)
         test_loss, test_acc = test(epoch)
         LR_scheduler.step()
